@@ -11,12 +11,17 @@ LABELS = {
     category: f"Recruitment - {category}"
     for category in (ACKNOWLEDGMENT, INTERVIEW, ASSESSMENT, REJECTION, RESPONSE)
 }
+INTERVIEW_BOOKING = r"\b(?:book|schedule|choose|select) (?:(?:an? |your |the )?interview|(?:an? |your )?(?:time|slot) for (?:an? |your |the )?interview)\b"
 SPECIFIC = {
-    INTERVIEW: r"\b(?:interview invitation|(?:invite|inviting) you (?:to|for) (?:an? |the )?interview|(?:attend|book|schedule) (?:an? |your )?interview)\b",
+    INTERVIEW: rf"\b(?:interview invitation|(?:invite|inviting) you (?:to|for) (?:an? |the )?interview|attend (?:an? |your )?interview)\b|{INTERVIEW_BOOKING}",
     ASSESSMENT: r"\b(?:assessment invitation|(?:complete|take|submit) (?:the |a |your |our )?(?:hiring test|coding exercise|(?:recruitment )?assessment))\b",
     REJECTION: r"\b(?:will not be moving forward with your application|decided not to proceed with your application|were not selected)\b",
 }
 REPLY = r"\b(?:please (?:reply|respond|confirm|provide|send)|let us know|reply with)\b"
+AVAILABILITY = (
+    r"\b(?:(?:confirm|share|provide) (?:your )?(?:interview )?availability"
+    r"|confirm (?:if|whether) you(?: are|['’]re) (?:still )?available)\b"
+)
 NO_REPLY = r"\b(?:no (?:reply|response) (?:is )?(?:needed|required)|do not reply)\b"
 ACTION = r"\b(?:please (?:book|schedule|complete|take|submit)|complete (?:the |a |your |our )?(?:hiring test|coding exercise|(?:recruitment )?assessment))\b"
 
@@ -35,6 +40,12 @@ def classify(subject: str, current_text: str) -> Decision:
     ]
     reply = bool(re.search(REPLY, text) and not re.search(NO_REPLY, text))
     attention = reply or bool(re.search(ACTION, text))
+    if INTERVIEW in specific:
+        body = " ".join(current_text.casefold().split())
+        attention = attention or bool(
+            re.search(INTERVIEW_BOOKING, body)
+            or (re.search(AVAILABILITY, body) and not re.search(NO_REPLY, text))
+        )
     if len(specific) > 1:
         return Decision(None, attention, "ambiguous")
     if specific:

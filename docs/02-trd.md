@@ -12,7 +12,7 @@
 
 ## Architecture
 
-Flask routes handle forms and render pages. A workflow module owns preview and confirmation. A pure classifier accepts normalized message text and returns a decision. A mailbox interface supplies messages, current labels, and one operation to apply an allowed category. Mock and Gmail implementations share that contract.
+Flask routes handle forms and render pages. A workflow module owns preview and confirmation. A pure classifier accepts normalized message text and returns a decision. The mailbox interface lists inbox IDs, reads normalized messages with their label names and inbox membership, and applies an allowed category to one message. Mock and Gmail implementations share that contract.
 
 ```text
 pyproject.toml                  Dependencies and test configuration
@@ -30,7 +30,7 @@ tests/                          Classification, workflow, route and adapter test
 docs/                           Existing six project documents
 ```
 
-**Classification rules.** Match case-insensitive phrases in the subject and current message text after normalizing whitespace. Use the plain-text MIME part when available, otherwise extract visible text from HTML. Ignore attachments and quoted reply history. A generic word such as “application,” “test,” or “reply” is insufficient on its own.
+**Classification rules.** Match case-insensitive phrases in the subject and current message text after normalizing whitespace. Use the plain-text MIME part when available, otherwise extract visible text from HTML. Ignore attachments and quoted reply history. The Gmail adapter parses the raw MIME message in memory and passes normalized text, display fields, user label names, and inbox membership to the workflow. A generic word such as “application,” “test,” or “reply” is insufficient on its own.
 
 | Category and exact Gmail label | Positive evidence |
 |---|---|
@@ -40,12 +40,12 @@ docs/                           Existing six project documents
 | `Recruitment - Rejection` | Explicit negative hiring decision such as “we will not be moving forward with your application” |
 | `Recruitment - Response request` | Recruitment context plus an explicit request to reply, confirm details, or provide information, when no more specific category applies |
 
-A specific invitation or decision takes precedence over a courtesy acknowledgment. If multiple specific invitations or decisions remain plausible, mark the row **Needs review**. A request to act sets the attention flag independently of the category. “No reply needed” suppresses a reply-only signal. A separate instruction to complete an assessment still sets the flag. Unrelated mail contributes only to the scan count.
+A specific invitation or decision takes precedence over a courtesy acknowledgment. If multiple specific invitations or decisions remain plausible, mark the row **Needs review**. A request to act sets the attention flag independently of the category. “No reply needed” suppresses a reply-only signal. An interview availability request counts as a reply signal, including wording such as “Could you confirm whether you’re available?” Booking an interview or completing an assessment still requires attention when the message says no reply is needed. Unrelated mail contributes only to the scan count.
 
 ## Constraints
 
 - **Mock by default.** Mock startup and all automated tests work without credentials or Gmail access. The mock mailbox retains label changes across scans in the same process and resets from fixtures on restart.
-- **Dedicated account only.** Explicit live configuration supplies an expected test-account address and desktop OAuth client credentials. Use loopback OAuth with state validation, request `gmail.modify`, and compare the authenticated Gmail profile with the configured address before listing mail. Bind each preview to that account. [Gmail profile reference](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile)
+- **Dedicated account only.** Explicit live configuration supplies an expected test-account address and desktop OAuth client credentials. Use loopback OAuth with state validation, request `gmail.modify`, and compare the authenticated Gmail profile with the configured address before listing mail. Keep one verified Gmail adapter per process. Every preview uses that adapter. Switching accounts requires a restart and invalidates pending previews. [Gmail profile reference](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile)
 - **Limit writes at the adapter.** Accept only the five fixed category names. Resolve or create an exact user label after confirmation and add its ID to the individual message with `messages.modify`. Preserve other labels. The OAuth permission is broader than the app’s operation, so verify the outgoing request shape in tests. [Gmail message modification reference](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify)
 - **Local security.** Disable Flask debug mode for normal use. Keep credential files outside the repository and OAuth tokens in memory. Use CSRF tokens for form submissions, a random session secret, and an HTTP-only, SameSite session cookie. Keep email content and OAuth tokens out of cookies and logs. Render mail-derived fields as escaped text and discard body text after classification.
 - **Bounded state.** Keep the current preview and results server-side, tied to the browser session. A preview expires after 15 minutes or when replaced. A process restart invalidates pending confirmations.

@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
 <body>
-  <main>{% block content %}{% endblock %}</main>
+  <header class="masthead">
+    <div class="shell masthead-inner">
+      <span class="wordmark">Recruitment mail</span>
+      <span class="source{{ ' source-live' if config.GMAIL_MODE else '' }}">{{ "Live Gmail" if config.GMAIL_MODE else "Mock mode" }}</span>
+    </div>
+  </header>
+  <main class="shell">{% block content %}{% endblock %}</main>
 </body>
 </html>

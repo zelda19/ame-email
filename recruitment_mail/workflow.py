@@ -6,7 +6,7 @@ from threading import Lock
 from time import monotonic
 
 from .classify import LABELS, Decision, classify
-from .mailbox import Mailbox, MailboxUnavailable, Message
+from .mailbox import Mailbox, MailboxUnavailable, Message, UnverifiedWrite
 
 
 SCAN_LIMIT = 50
@@ -72,11 +72,13 @@ class Workflow:
 
     def preview(self, owner: str) -> str:
         ids = dict.fromkeys(self.mailbox.list_inbox_ids(SCAN_LIMIT)[:SCAN_LIMIT])
+        preview_reader = getattr(self.mailbox, "preview_reader", None)
+        read_message = preview_reader() if ids and preview_reader else self.mailbox.read_message
         rows = {}
         unreadable = 0
         for message_id in ids:
             try:
-                message = self.mailbox.read_message(message_id)
+                message = read_message(message_id)
             except MailboxUnavailable:
                 raise
             except (LookupError, OSError):
@@ -171,6 +173,8 @@ class Workflow:
             self.mailbox.apply_category(message_id, category)
         except MailboxUnavailable:
             return Outcome(row, "Unverified", "Mailbox access was interrupted during the write."), True
+        except UnverifiedWrite as error:
+            return Outcome(row, "Unverified", str(error)), False
         except TimeoutError:
             return Outcome(row, "Unverified", "The label operation timed out."), False
         except LookupError:

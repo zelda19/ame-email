@@ -1,15 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Mock inbox{% endblock %}
+{% set source = "Dedicated Gmail test account" if config.GMAIL_MODE else "Mock inbox" %}
+{% block title %}{{ source }}{% endblock %}
 {% block content %}
-<h1>Mock inbox</h1>
-<p>Scan up to {{ limit }} fictional messages.</p>
-{% if error %}<p role="alert">{{ error }}</p>{% endif %}
-{% if session.csrf_token %}
+<section class="start-panel" aria-labelledby="start-title">
+<h1 id="start-title">{{ source }}</h1>
+{% if config.GMAIL_ADDRESS %}<p class="account">Verified account: {{ config.GMAIL_ADDRESS }}</p>{% endif %}
+<p class="page-note">Scan up to {{ limit }} {{ "inbox" if config.GMAIL_MODE else "fictional" }} messages.</p>
+{% if error %}<p class="notice" role="alert">{{ error }}</p>{% endif %}
+{% if config.MAILBOX_STARTUP_ERROR %}
+<p class="notice" role="alert">{{ config.MAILBOX_STARTUP_ERROR }}</p>
+{% elif session.csrf_token %}
 <form method="post" action="{{ url_for('pages.preview') }}">
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-  <button type="submit">Preview inbox</button>
+  <button class="primary" type="submit">Preview inbox</button>
 </form>
 {% else %}
 <p><a href="{{ url_for('pages.start') }}">Return to Start</a></p>
 {% endif %}
+</section>
 {% endblock %}

@@ -24,5 +24,5 @@ Start → Preview → Results. Cancel returns to Start and invalidates the previ
 | Individual message read failure | Count the row as unreadable, exclude it from selection, and continue previewing the rest. |
 | Invalid selection, expired preview, or CSRF failure | Reject the submission before writing. Offer a fresh preview. |
 | Message disappeared, left the inbox, or acquired a conflicting label | Record the row as unprocessed with a reason and continue. |
-| One label operation fails or times out | Continue independent rows. If the outcome is uncertain, identify it as unverified. Recheck mailbox state on the next preview. |
+| One label operation fails or times out | Continue independent rows. If the outcome is uncertain, identify it as unverified. For Gmail writes, report whether creation or modification was unverified and give a safe reason when available. Recheck mailbox state on the next preview. |
 | Authorization loss or account-wide rate limit during confirmation | Stop issuing writes. Preserve completed results, identify the interrupted row, and mark remaining selected rows unprocessed. |

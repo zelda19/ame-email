@@ -3,25 +3,36 @@ from secrets import compare_digest, token_urlsafe
 
 from flask import Blueprint, abort, current_app, redirect, render_template, request, session, url_for
 
+from .mailbox import MailboxUnavailable
 from .workflow import OUTCOMES, SCAN_LIMIT, InvalidSelection, RunExpired, RunMissing
 
 
 pages = Blueprint("pages", __name__)
 
 
+def start_page(error=None):
+    return render_template("start.html", limit=SCAN_LIMIT, error=error)
+
+
+@pages.after_request
+def disable_caching(response):
+    response.cache_control.no_store = True
+    return response
+
+
 @pages.errorhandler(RunMissing)
 def missing(_error):
-    return render_template("start.html", limit=SCAN_LIMIT, error="Preview unavailable. Start a fresh preview."), 404
+    return start_page("Preview unavailable. Start a fresh preview."), 404
 
 
 @pages.errorhandler(RunExpired)
 def expired(_error):
-    return render_template("start.html", limit=SCAN_LIMIT, error="Preview expired. Start a fresh preview."), 410
+    return start_page("Preview expired. Start a fresh preview."), 410
 
 
 @pages.errorhandler(403)
 def invalid_csrf(_error):
-    return render_template("start.html", limit=SCAN_LIMIT, error="Form expired or invalid. Start a fresh preview."), 403
+    return start_page("Form expired or invalid. Start a fresh preview."), 403
 
 
 def require_csrf():
@@ -33,7 +44,10 @@ def require_csrf():
 
 
 def workflow():
-    return current_app.extensions["workflow"]
+    active = current_app.extensions.get("workflow")
+    if active is None:
+        raise RunMissing
+    return active
 
 
 def redirect_to_run(run_id):
@@ -44,19 +58,20 @@ def redirect_to_run(run_id):
 def start():
     if "csrf_token" not in session:
         session["csrf_token"] = token_urlsafe(32)
-    return render_template("start.html", limit=SCAN_LIMIT)
+    return start_page()
 
 
 @pages.post("/preview")
 def preview():
     owner = require_csrf()
+    if current_app.config["MAILBOX_STARTUP_ERROR"]:
+        return start_page(), 503
     try:
         run_id = workflow().preview(owner)
+    except MailboxUnavailable as error:
+        return start_page(str(error)), 503
     except OSError:
-        return render_template(
-            "start.html", limit=SCAN_LIMIT,
-            error="The mock inbox could not be read. Try previewing again.",
-        ), 503
+        return start_page("The inbox could not be read. Try previewing again."), 503
     return redirect_to_run(run_id)
 
 

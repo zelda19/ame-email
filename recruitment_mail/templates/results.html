@@ -7,20 +7,34 @@
 <p><a href="{{ url_for('pages.run', run_id=run.id) }}">Check progress</a></p>
 {% else %}
 <h1>Confirmation results</h1>
-<p>Selected: {{ run.outcomes | length }}</p>
-<ul>
+<ul class="metrics" aria-label="Confirmation summary">
+  <li>Selected: {{ run.outcomes | length }}</li>
   {% for status in statuses %}
   <li>{{ status }}: {{ counts[status] }}</li>
   {% endfor %}
 </ul>
-<ul>
+{% if run.outcomes %}
+<section aria-labelledby="outcomes-title">
+<h2 id="outcomes-title">Message outcomes</h2>
+<ul class="outcome-list">
   {% for outcome in run.outcomes %}
-  <li>{{ outcome.row.subject }} · {{ outcome.row.sender }} · {{ outcome.row.received }} · {{ outcome.status }}{% if outcome.reason %} · {{ outcome.reason }}{% endif %}</li>
+  <li>
+    <div>
+      <div class="outcome-subject">{{ outcome.row.subject }}</div>
+      <div class="outcome-meta">{{ outcome.row.sender }} · <span>{{ outcome.row.received }}</span></div>
+    </div>
+    <div>
+      <span class="row-status">{{ outcome.status }}</span>
+      {% if outcome.reason %}<span class="status-note">{{ outcome.reason }}</span>{% endif %}
+    </div>
+  </li>
   {% endfor %}
 </ul>
-<form method="post" action="{{ url_for('pages.preview') }}">
+</section>
+{% endif %}
+<form class="actions" method="post" action="{{ url_for('pages.preview') }}">
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-  <button type="submit">Preview again</button>
+  <button class="primary" type="submit">Preview again</button>
 </form>
 {% endif %}
 {% endblock %}

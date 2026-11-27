@@ -6,3 +6,6 @@ __pycache__/
 .env.*
 credentials.json
 token.json
+client_secret_*.json
+venv/
+*.egg-info/

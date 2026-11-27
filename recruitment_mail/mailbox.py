@@ -21,6 +21,10 @@ class MailboxUnavailable(OSError):
     """A mailbox-wide failure that prevents further writes."""
 
 
+class UnverifiedWrite(OSError):
+    """A write without a verified result, with a safe user-facing reason."""
+
+
 class Mailbox(Protocol):
     def list_inbox_ids(self, limit: int) -> list[str]: ...
     def read_message(self, message_id: str) -> Message: ...
