@@ -1,0 +1,9 @@
+[
+  {"id":"receipt","sender":"Arbor Careers","subject":"Hiring update","received":"2026-11-27 09:00 UTC","text":"Thank you for applying. We received your application. No reply needed."},
+  {"id":"interview","sender":"Cedar Hiring","subject":"Interview invitation","received":"2026-11-27 09:05 UTC","text":"Thank you for applying. We invite you to an interview. Please reply with your availability."},
+  {"id":"assessment","sender":"Maple Recruiting","subject":"Next step","received":"2026-11-27 09:10 UTC","text":"Please complete the coding exercise by Thursday. No reply needed."},
+  {"id":"rejection","sender":"Linden Careers","subject":"Hiring update","received":"2026-11-27 09:15 UTC","text":"Thank you for applying. We will not be moving forward with your application."},
+  {"id":"response","sender":"Aspen Recruiting","subject":"Application details","received":"2026-11-27 09:20 UTC","text":"For your job application, please confirm your preferred office location."},
+  {"id":"ambiguous","sender":"Birch Careers","subject":"Next steps","received":"2026-11-27 09:25 UTC","text":"Please schedule an interview and complete the hiring test."},
+  {"id":"unrelated","sender":"Rowan Kitchen","subject":"Weekend recipes","received":"2026-11-27 09:30 UTC","text":"Please reply with your favorite cake recipe."}
+]

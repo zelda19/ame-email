@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Inbox preview{% endblock %}
+{% block content %}
+<h1>Inbox preview</h1>
+<p>Scanned {{ count }} messages.</p>
+{% if unreadable %}<p>Unreadable messages: {{ unreadable }}</p>{% endif %}
+{% if rows %}
+<div class="table-scroll" role="region" aria-label="Preview messages" tabindex="0">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Sender</th>
+        <th scope="col">Subject</th>
+        <th scope="col">Received</th>
+        <th scope="col">Proposed category</th>
+        <th scope="col">Attention required</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.sender }}</td>
+        <td>{{ row.subject }}</td>
+        <td>{{ row.received }}</td>
+        <td>{{ row.decision.category or "—" }}</td>
+        <td>{{ "Yes" if row.decision.attention else "No" }}</td>
+        <td>{{ "Needs review · Multiple categories match" if not row.decision.category else "Proposed" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No matching recruitment messages found.</p>
+{% endif %}
+<p><a href="{{ url_for('pages.start') }}">Return to Start</a></p>
+{% endblock %}
