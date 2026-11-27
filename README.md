@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Project Template
 
 Reusable docs structure for new projects. Existing repos keep their own conventions.
@@ -32,3 +33,7 @@ approval before implementing.
 
 Keep sections short. Write `Not applicable` instead of inventing content (e.g. no database needed).
 Update docs alongside code, since stale docs mislead the agent.
+=======
+# ame-email
+email automation
+>>>>>>> origin/main
