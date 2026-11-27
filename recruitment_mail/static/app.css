@@ -13,3 +13,4 @@ button { font: inherit; padding: .5rem .85rem; cursor: pointer; }
 a { color: #174891; }
 :focus-visible { outline: 3px solid #174891; outline-offset: 3px; }
 .table-scroll:focus-visible { outline-offset: -3px; }
+.primary { background: #174891; color: white; border: 1px solid #174891; }

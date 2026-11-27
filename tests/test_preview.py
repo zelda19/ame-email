@@ -52,6 +52,6 @@ def test_default_inbox_exercises_supported_decisions():
     ):
         assert f"<td>{category}</td> <td>{attention}</td>" in rows
     assert "Needs review" in html
-    assert html.count("<td>Hiring update</td>") == 2
+    assert html.count(">Hiring update</td>") == 2
     assert "Weekend recipes" not in html
     assert "Scanned 7 messages." in html

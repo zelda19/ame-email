@@ -4,17 +4,19 @@
 
 ## Phase 1 — Preview a fictional inbox
 
-- [ ] Build the Flask app factory, mock mailbox, deterministic classifier, and start and preview screens.
-- [ ] Include fixtures for all five categories, overlapping invitation and reply language, negative wording, unrelated mail, ambiguous messages, and distinct messages with identical subjects.
+- [x] Build the Flask app factory, mock mailbox, deterministic classifier, and start and preview screens.
+- [x] Include fixtures for all five categories, overlapping invitation and reply language, negative wording, unrelated mail, ambiguous messages, and distinct messages with identical subjects.
 - **Verify:** Run `python -m pytest -q` offline. Assert expected categories and attention flags through the classifier interface. Use the Flask test client to verify required preview columns, escaped sender and subject text, unique rows, and zero mailbox writes. Manually open the mock preview and check keyboard navigation.
 
-**Verification record.** Offline `.venv/bin/python -B -m pytest -q` passed all 9 tests. Manual browser and keyboard verification is pending.
+**Verification record.** Offline `.venv/bin/python -B -m pytest -q` passed all 9 tests. Manual browser and keyboard verification passed (reported by the user).
 
 ## Phase 2 — Confirm labels and recover from failures
 
-- [ ] Add session-bound previews, checkbox selection, confirmation, cancellation, expiry, and results.
-- [ ] Implement label rechecks, duplicate-submit protection, conflict handling, and per-message failure reporting.
+- [x] Add session-bound previews, checkbox selection, confirmation, cancellation, expiry, and results.
+- [x] Implement label rechecks, duplicate-submit protection, conflict handling, and per-message failure reporting.
 - **Verify:** Run the full pytest suite. Through the form routes and mock mailbox, exercise cancel, deselection, forged IDs, invalid CSRF, expiry, repeated and concurrent confirmation, and a label added between preview and confirmation. Simulate one successful write, one already-labeled row, and one failed write. Confirm that the counts reconcile and the next run changes only the unresolved message. At this point the complete offline portfolio demo is usable.
+
+**Verification record.** Offline `.venv/bin/python -B -m pytest -q` passed 19 tests. The Flask test client and mock mailbox verified cancellation, deselection, invalid selections, CSRF, session ownership, expiry, replay, concurrent confirmation, label and inbox rechecks, mixed outcomes, interrupted writes, and retry from a fresh preview.
 
 ## Phase 3 — Add the optional Gmail adapter and finish the demo
 

@@ -27,4 +27,4 @@ The browser interface uses HTML forms and redirects. The server derives labels a
 | `POST /runs/<id>/confirm` | CSRF token and selected message IDs | Apply the validated selection once and redirect to the run. A replay returns the existing state. |
 | `POST /runs/<id>/cancel` | CSRF token | Discard a pending preview and redirect to Start |
 
-Reject an empty or invalid selection as a form error, invalid CSRF with `403`, and an unknown or another session’s run with `404`. An expired preview prompts a rescan. Use the mailbox contract to list inbox IDs, read messages, inspect current label state, and apply one approved category. Keep OAuth and provider-specific error translation inside the Gmail adapter.
+Reject an empty or invalid selection as a form error, invalid CSRF with `403`, and an unknown or another session’s run with `404`. An expired preview returns `410` and prompts a rescan. A valid form submission that navigates to another page redirects with `303`. Use the mailbox contract to list inbox IDs, read messages, inspect current label state, and apply one approved category. Keep OAuth and provider-specific error translation inside the Gmail adapter.

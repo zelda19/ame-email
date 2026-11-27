@@ -2,13 +2,17 @@
 {% block title %}Inbox preview{% endblock %}
 {% block content %}
 <h1>Inbox preview</h1>
-<p>Scanned {{ count }} messages.</p>
-{% if unreadable %}<p>Unreadable messages: {{ unreadable }}</p>{% endif %}
-{% if rows %}
+<p>Scanned {{ run.count }} messages.</p>
+{% if run.unreadable %}<p>Unreadable messages: {{ run.unreadable }}</p>{% endif %}
+{% if run.rows %}
+{% if error %}<p id="selection-error" role="alert">{{ error }}</p>{% endif %}
+<form method="post" action="{{ url_for('pages.confirm', run_id=run.id) }}"{% if error %} aria-describedby="selection-error"{% endif %}>
+<input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 <div class="table-scroll" role="region" aria-label="Preview messages" tabindex="0">
   <table>
     <thead>
       <tr>
+        <th scope="col">Select</th>
         <th scope="col">Sender</th>
         <th scope="col">Subject</th>
         <th scope="col">Received</th>
@@ -18,21 +22,31 @@
       </tr>
     </thead>
     <tbody>
-      {% for row in rows %}
+      {% for id, row in run.rows.items() %}
       <tr>
-        <td>{{ row.sender }}</td>
-        <td>{{ row.subject }}</td>
-        <td>{{ row.received }}</td>
+        <td>{% if row.status == "Proposed" %}
+          <input type="checkbox" name="selected" value="{{ id }}" checked aria-labelledby="message-{{ loop.index }} sender-{{ loop.index }} date-{{ loop.index }}">
+        {% endif %}</td>
+        <td id="sender-{{ loop.index }}">{{ row.sender }}</td>
+        <td id="message-{{ loop.index }}">{{ row.subject }}</td>
+        <td id="date-{{ loop.index }}">{{ row.received }}</td>
         <td>{{ row.decision.category or "—" }}</td>
         <td>{{ "Yes" if row.decision.attention else "No" }}</td>
-        <td>{{ "Needs review · Multiple categories match" if not row.decision.category else "Proposed" }}</td>
+        <td>{{ row.status }}{% if row.status == "Needs review" %} · Multiple categories match{% elif row.status == "Conflicting label" %} · Another recruitment label is present{% elif row.status == "Already labeled" %} · The proposed label is already present{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% if run.rows.values() | selectattr("status", "equalto", "Proposed") | first is defined %}
+<p><button class="primary" type="submit">Apply selected labels</button></p>
+{% endif %}
+</form>
 {% else %}
 <p>No matching recruitment messages found.</p>
 {% endif %}
-<p><a href="{{ url_for('pages.start') }}">Return to Start</a></p>
+<form method="post" action="{{ url_for('pages.cancel', run_id=run.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+  <button type="submit">{{ "Cancel" if run.rows else "Return to Start" }}</button>
+</form>
 {% endblock %}
