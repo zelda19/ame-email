@@ -18,6 +18,17 @@ offline.
   labels are flagged for review.
 - Inspect per-message results and rescan to reconcile uncertain writes.
 
+## Screenshots
+![Mock inbox](assets/mock.jpg)
+
+### Inbox preview
+
+![Inbox preview](assets/inbox.jpg)
+
+### Confirmation results
+
+![Confirmation results](assets/confirm.jpg)
+
 ## Run the mock demo
 
 Use Python 3.11 or newer. From the project root:
