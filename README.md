@@ -1,20 +1,26 @@
-# Recruitment Mail
+# ame-email
 
-Recruitment Mail is a local Flask dashboard for reviewing hiring messages and
-applying category labels after you confirm the selection. The portfolio demo
-uses a fictional inbox and works offline.
+![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB)
+![Flask](https://img.shields.io/badge/Flask-web%20app-000000)
+![Jinja](https://img.shields.io/badge/Jinja-server--rendered-B41717)
+![Tests](https://img.shields.io/badge/pytest-47%20passing-25623D)
+
+Review recruitment email and apply category labels after confirming your
+selection. The recommended portfolio demo uses a fictional inbox and works
+offline.
 
 ## Features
 
-- Preview up to 50 inbox messages per scan and see scanned, matched, and attention-required counts.
-- Classify application confirmations, interview invitations, assessment invitations, rejections, and response requests.
-- Review proposed labels and deselect messages before confirmation. Ambiguous messages and conflicting labels are flagged for review.
-- See per-message outcomes, then rescan to reconcile uncertain writes and identify already-labeled messages.
+- Scan up to 50 inbox messages and see which messages need attention.
+- Preview proposed labels for application confirmations, interviews,
+  assessments, rejections, and response requests.
+- Deselect messages before applying labels. Ambiguous messages and conflicting
+  labels are flagged for review.
+- Inspect per-message results and rescan to reconcile uncertain writes.
 
-## Run the recruitment mail demo
+## Run the mock demo
 
-From the project root, create a local virtual environment with Python 3.11
-or newer, install the project, and start Flask on loopback:
+Use Python 3.11 or newer. From the project root:
 
 ```sh
 python -m venv .venv
@@ -22,37 +28,38 @@ python -m venv .venv
 RECRUITMENT_MAIL_MODE=mock .venv/bin/python -m flask --app recruitment_mail run --host 127.0.0.1 --no-debug --no-debugger --no-reload
 ```
 
-Open http://127.0.0.1:5000. The default **Mock inbox** uses fictional messages
-and needs no Google credentials. Select **Preview inbox**, review the category
-and attention columns, then deselect any proposals you want to skip.
-Select **Apply selected labels** and inspect the results. **Preview again**
-shows which messages are already labeled. Restart the app to reset the demo.
+Open <http://127.0.0.1:5000>, choose **Preview inbox**, review the rows, then
+choose **Apply selected labels**. Use **Preview again** to see already-labeled
+messages. Restart the app to reset the fictional inbox.
+
+## Stack
+
+Python and Flask serve Jinja templates, native forms, and plain CSS. A
+deterministic phrase classifier and an in-memory workflow share a mailbox
+interface with mock and Gmail implementations.
 
 ## Testing
-
-Run the suite from the project root after installing the test extra:
 
 ```sh
 .venv/bin/python -m pytest -q
 ```
 
-Tests use fictional messages, Flask's test client, and simulated Gmail
-transports. They require no Gmail credentials or network access. On Linux
-with user namespaces enabled, enforce network isolation with
-`unshare -Un .venv/bin/python -B -m pytest -q`.
+All 47 automated tests passed using fictional inboxes and simulated Gmail
+requests. On Linux with user namespaces enabled, run the suite with
+`unshare -Un .venv/bin/python -B -m pytest -q` to isolate it from the network.
 
-## Optional Gmail test account
+## Optional Gmail integration
 
-1. Enable the Gmail API in a Google Cloud project, configure OAuth consent,
-   and create a **Desktop app** OAuth client. If the consent screen is in
-   testing mode, add your dedicated Gmail test account as a test user.
-   Use an account that contains only fictional test mail.
+A live smoke test passed with a dedicated Gmail test account, including
+OAuth, account verification, a 50-message scan, label application, and rescan.
+
+1. Enable the Gmail API in your Google Cloud project. Configure OAuth consent,
+   add the dedicated address as a test user if the app is in Testing, and
+   create a **Desktop app** OAuth client. Store the downloaded JSON in a
+   private directory outside this repository.
    [Google Gmail Python quickstart](https://developers.google.com/workspace/gmail/api/quickstart/python)
-2. Download the desktop client JSON to a private location outside the project.
-   Install the optional dependencies into the project virtual environment
-   with `.venv/bin/python -m pip install -e '.[gmail]'`.
-3. Start from the project root and replace the shell values below with the
-   dedicated account address and external client file path.
+2. Install the Gmail extra with `.venv/bin/python -m pip install -e '.[gmail]'`.
+3. Launch Gmail mode with your dedicated test address and external client path:
 
    ```sh
    RECRUITMENT_MAIL_MODE=gmail \
@@ -62,40 +69,20 @@ with user namespaces enabled, enforce network isolation with
    ```
 
 4. Open the authorization URL printed in the terminal within three minutes.
-   Sign in to the dedicated account. The app verifies the authorized Gmail
-   profile before enabling preview and displays the verified address on Start.
-   Keep debug logging off. Tokens stay in memory, and restarting requires
-   authorization again.
+   Sign in to the dedicated test account and check the verified address in the
+   app before previewing.
 
-For the optional live check, preview two eligible fictional messages, select
-one, and confirm. In Gmail, verify the selected message gained exactly its
-proposed recruitment label and the deselected message retained its original
-labels. Run a fresh preview and check that the selected message is now
-**Already labeled**.
-
-## Architecture
-
-Flask routes serve Jinja templates and native HTML forms. The workflow
-keeps previews and results in process memory and uses a deterministic phrase
-classifier. A shared mailbox contract lets the workflow use either the mock
-inbox or the optional Gmail adapter. The adapter handles OAuth, MIME
-normalization, and provider-specific requests. Plain CSS and server-rendered
-forms keep the interface usable without JavaScript.
+The optional [setup wizard](scripts/gmail-smoke-wizard.sh) guides you through
+the Cloud setup and prompts separately before connecting and applying a label.
 
 ## Security and limitations
 
-- Run one local process bound to loopback with debug mode off. Previews are session-bound and expire after 15 minutes. Form submissions require CSRF tokens, and confirmation validates the selection before allowing one submission per preview.
-- In Gmail mode, use a dedicated test account. The app verifies the authenticated profile before reading messages. Desktop OAuth credentials belong outside the repository, and tokens stay in memory. Keep credential files and tokens out of Git regardless of filename.
-- Gmail grants the broader `gmail.modify` scope. The adapter adds only an approved recruitment category label to each confirmed message and preserves its other labels. If a write is unverified, rescan before confirming again.
-- The classifier uses English phrases and may miss unfamiliar wording. Scans are limited to 50 inbox messages. Run history and mock label changes reset on restart.
-
-## Docs
-
-| File | Purpose |
-|---|---|
-| `docs/01-prd.md` | What and why |
-| `docs/02-trd.md` | How: stack and architecture |
-| `docs/03-design.md` | Screens, components, visual rules |
-| `docs/04-appflow.md` | User journeys and navigation |
-| `docs/05-schema.md` | Data models and API contracts |
-| `docs/06-plan.md` | Phased checklist with verification |
+- Run locally on loopback with debug mode off. Previews are session-bound,
+  expire after 15 minutes, and require CSRF-protected confirmation.
+- Gmail account identity is verified before mailbox access. OAuth tokens stay
+  in memory, and credential files belong outside the repository. The granted
+  `gmail.modify` scope is broader than the app's write path, which only adds
+  the approved category label to each confirmed message.
+- Classification uses English phrases and can miss unfamiliar wording. Scans
+  are limited to 50 inbox messages. Run history and mock label changes reset
+  on restart. Rescan before retrying an unverified write.
